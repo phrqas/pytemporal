@@ -1,0 +1,49 @@
+#Request message to PARIS
+
+#Header that records a time stamp
+Header header
+
+#Optional name for this request
+string name
+
+#PSTNU to be scheduled
+PSTNU pstnu
+
+#Number of divisions on each side of a Gaussian
+int32 gaussian_div
+
+#Whether to optimize Gaussian partitions or not
+bool gaussian_optimize_partition
+
+#Learning rate for gradient descent
+float32 gaussian_lr
+
+#Error tolerance for gradient descent
+float32 gaussian_tol
+
+#Maximum number of iterations for gradient descent
+int32 gaussian_max_iter
+
+#Chance constraint for the strong schedule
+float32 cc
+
+#Whether to optimize makespan (True) or minimize scheduling risk (False)
+bool makespan
+
+---
+#Response message from PARIS
+
+#Header that records a time stamp
+Header header
+
+#Whether a solution was successfully found
+bool success
+
+#Strong schedule returned by PARIS
+StrongSchedule schedule
+
+#List of squeezed temporal constraints
+TemporalConstraintSqueeze[] squeezes
+
+#Upper bound on the true scheduling risk
+float32 risk_upper_bound
