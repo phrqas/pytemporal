@@ -46,16 +46,14 @@ from operator import mul
 import itertools
 from rmpyl.defs import ChoiceAssignment
 from paris import PARIS
+import ipdb
 
 class PTPNStrongConsistency(object):
     """
     Strong consistency checker for PTPN's (Santana & Williams, ICAPS14) that caches
     previous solutions for efficiency
     """
-    def __init__(self,labeled_tcs,paris_params={},verbose=False):
-        #Labeled temporal constraints that compose the problem
-        self.labeled_tcs = labeled_tcs
-
+    def __init__(self,paris_params={},verbose=False):
         #Uses PARIS as a risk-aware scheduler for PSTNU's.
         self._paris = PARIS(**paris_params)
 
@@ -64,30 +62,31 @@ class PTPNStrongConsistency(object):
 
         self.verbose=verbose #Verbosity flag
 
-    def strong_consistency(self,assignments,additional_tcs=[]):
+    def strong_consistency(self,assignments,tcs):
         """
         Solves the strong consistency problem, should the solution not be in the
         cache.
         """
         decisions = frozenset([a for a in assignments if a.var.type=='controllable'])
-        decision_tuples = frozenset([(a.var,a.value) for a in decisions])
+        # decision_tuples = frozenset([(a.var,a.value) for a in decisions])
+        #
+        # add_tcs_tuples = frozenset([(tc.start,tc.end) for tc in tcs])
+        #
+        # if not ((decision_tuples,add_tcs_tuples) in self._sol_cache):
+        #     self._sol_cache[(decision_tuples,add_tcs_tuples)] = self._strong_consistency(decisions,tcs)
+        # return self._sol_cache[(decision_tuples,add_tcs_tuples)]
+        return self._strong_consistency(decisions,tcs)
 
-        add_tcs_tuples = frozenset([(tc.start,tc.end) for tc in additional_tcs])
-
-        if not ((decision_tuples,add_tcs_tuples) in self._sol_cache):
-            self._sol_cache[(decision_tuples,add_tcs_tuples)] = self._strong_consistency(decisions,additional_tcs)
-        return self._sol_cache[(decision_tuples,add_tcs_tuples)]
-
-    def _strong_consistency(self,decisions,add_tcs):
+    def _strong_consistency(self,decisions,tcs):
         """
         Determines if a set of assignments to controllable choices can give
         rise to a strongly consistent PTPN schedule with respect to the
         uncontrollable choices.
         """
-        tcs_with_active_decisions = self._tcs_with_active_decisions(decisions,add_tcs)
+        tcs_with_active_decisions = self._tcs_with_active_decisions(decisions,tcs)
         return self._consistent_scenario_prob_mass(tcs_with_active_decisions,decisions)
 
-    def _tcs_with_active_decisions(self,decisions,add_tcs):
+    def _tcs_with_active_decisions(self,decisions,tcs):
         """
         Temporal constraints whose supports are consistent with the decisions
         and depend only on assignments to uncontrollable choices. Returns a
@@ -102,7 +101,7 @@ class PTPNStrongConsistency(object):
         #with said uncontrollable choices.
         tcs_with_active_decisions = {}
 
-        for tc in itertools.chain(self.labeled_tcs,add_tcs):
+        for tc in tcs:
             if tc.is_consistent(decisions):
                 for set_idx,decision_set in enumerate(tc.support_decisions):
                     #All controllable choices (decisions) in this constraint's
@@ -132,6 +131,7 @@ class PTPNStrongConsistency(object):
 
         prob_success_mass=0.0
 
+        # ipdb.set_trace()
         while len(queue)>0:
             node = queue.pop() #Removes element from the queue
 
